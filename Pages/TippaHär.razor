@@ -1,0 +1,170 @@
+﻿@page "/tippahär"
+@using System.Text.RegularExpressions;
+
+<h3 style="text-align:center; font-family:Calibri; color:black">Tippa Här</h3>
+<br />
+
+@foreach (var match in _matches)
+{
+
+    <div class="card-body" style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px; background-image: linear-gradient(to right, #0f0c29, #302b63, #24243e); color:white; border-style:outset; border-color:black; margin-right: 10px; margin-left:10px">
+        <h6 class="card-text">@match.HomeTeam vs @match.AwayTeam</h6>
+        <input type="radio" id="@($"home_{match.Id}")" name="@($"result_{match.Id}")" value="1" checked="@(_matchPredictions.ContainsKey(match.Id) && _matchPredictions[match.Id] == "home")" @onchange="@(() => SetMatchResult(match.Id, "1"))" />
+        <label for="@($"home_{match.Id}")">1</label>
+        <br />
+        <input type="radio" id="@($"draw_{match.Id}")" name="@($"result_{match.Id}")" value="X" checked="@(_matchPredictions.ContainsKey(match.Id) && _matchPredictions[match.Id] == "draw")" @onchange="@(() => SetMatchResult(match.Id, "X"))" />
+        <label for="@($"draw_{match.Id}")">X</label>
+        <br />
+        <input type="radio" id="@($"away_{match.Id}")" name="@($"result_{match.Id}")" value="2" checked="@(_matchPredictions.ContainsKey(match.Id) && _matchPredictions[match.Id] == "away")" @onchange="@(() => SetMatchResult(match.Id, "2"))" />
+        <label for="@($"away_{match.Id}")">2</label>
+    </div>
+}
+<br />
+<button class="btn btn-primary" style="margin-left: 10px; margin-bottom:20px" type="submit" @onclick="SubmitForm">Tippa!</button>
+
+<!--If-sats för att kontrollera OM _showresults är sant, och då loopa igenom vad användaren har tippat -->
+@if (_showResults)
+{
+    <div class="card-body" style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px; background-image: linear-gradient(to right, #DECBA4, #3E5151);">
+        <h6 style="text-align:center">Ditt Tips</h6>
+        @foreach (var prediction in _matchPredictions)
+        {
+            <p class="card-body" style="border:solid; background-color:white">@GetMatch(prediction.Key).HomeTeam vs @GetMatch(prediction.Key).AwayTeam: @prediction.Value</p>
+        }
+        <!-- Om användaren har tippat, får den även möjlighet att kolla de korrekta resultaten. Denna knapp går bara att använda om användaren redan
+        har tippat.
+        -->
+        <button class="btn btn-outline-light" type="submit" @onclick="ViewCorrectResults">Resultat</button>
+    </div>
+}
+
+<!-- If-sats för att kontrollera OM _showCorrectResults är sant, då loopa igenom de korrekta resultaten i listan Match -->
+@if (_showCorrectResults)
+{
+    <div class="card-body" style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px; background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%); margin-top:10px; margin-bottom:10px">
+        <h6 style="text-align:center">Rätt Resultat</h6>
+        @foreach (var match in _matches)
+        {
+            <p class="card-body" style="border:solid; background-color:white">@match.HomeTeam vs @match.AwayTeam: @match.CorrectResult</p>
+        }
+    </div>
+}
+
+@code {
+    // Skapar Lista med namn Match
+    private List<Match> _matches;
+    private Dictionary<int, string> _matchPredictions;
+    // Skaparctvå boolean som antingen har värde sant eller falskt
+    private bool _showResults;
+    private bool _showCorrectResults;
+
+    public class Match
+    {
+        public int Id { get; set; }
+        public string HomeTeam { get; set; }
+        public string AwayTeam { get; set; }
+        public string CorrectResult { get; set; }
+    }
+
+
+    protected override void OnInitialized()
+    {
+        // Skapar ny lista med Matcher
+
+        _matches = new List<Match>
+        {
+            // Adderar matcher med Hemmalag, Bortalag, samt korrekt resultat
+
+            new Match { Id = 1, HomeTeam = "Qatar", AwayTeam = "Ecuador", CorrectResult = "1" },
+            new Match { Id = 2, HomeTeam = "England", AwayTeam = "Iran", CorrectResult = "X" },
+            new Match { Id = 3, HomeTeam = "Senegal", AwayTeam = "Holland", CorrectResult = "2" },
+            new Match { Id = 4, HomeTeam = "USA", AwayTeam = "Wales", CorrectResult = "1" },
+            new Match { Id = 5, HomeTeam = "Argentina", AwayTeam = "Saudiarabien", CorrectResult = "2" },
+            new Match { Id = 6, HomeTeam = "Danmark", AwayTeam = "Tunisien", CorrectResult = "X" },
+            new Match { Id = 7, HomeTeam = "Mexiko", AwayTeam = "Polen", CorrectResult = "1" },
+            new Match { Id = 8, HomeTeam = "Frankrike", AwayTeam = "Australien", CorrectResult = "1" },
+            new Match { Id = 9, HomeTeam = "Marocko", AwayTeam = "Kroatien", CorrectResult = "1" },
+            new Match { Id = 10, HomeTeam = "Tyskland", AwayTeam = "Japan", CorrectResult = "1" },
+            new Match { Id = 11, HomeTeam = "Spanien", AwayTeam = "Costa Rica", CorrectResult = "1" },
+            new Match { Id = 12, HomeTeam = "Belgien", AwayTeam = "Kanada", CorrectResult = "X" },
+            new Match { Id = 13, HomeTeam = "Schweiz", AwayTeam = "Kamerun", CorrectResult = "1" },
+            new Match { Id = 14, HomeTeam = "Uruguay", AwayTeam = "Sydkorea", CorrectResult = "2" },
+            new Match { Id = 15, HomeTeam = "Portugal", AwayTeam = "Ghana", CorrectResult = "" },
+            new Match { Id = 16, HomeTeam = "Brasilien", AwayTeam = "Serbien", CorrectResult = "X" },
+            new Match { Id = 17, HomeTeam = "Wales", AwayTeam = "Iran", CorrectResult = "1" },
+            new Match { Id = 18, HomeTeam = "Qatar", AwayTeam = "Senegal", CorrectResult = "1" },
+            new Match { Id = 19, HomeTeam = "Holland", AwayTeam = "Ecuador", CorrectResult = "1" },
+            new Match { Id = 20, HomeTeam = "England", AwayTeam = "USA", CorrectResult = "1" },
+            new Match { Id = 21, HomeTeam = "Polen", AwayTeam = "Saudiarabien", CorrectResult = "1" },
+            new Match { Id = 22, HomeTeam = "Argentina", AwayTeam = "Mexiko", CorrectResult = "1" },
+            new Match { Id = 23, HomeTeam = "Tunisien", AwayTeam = "Australien", CorrectResult = "1" },
+            new Match { Id = 24, HomeTeam = "Frankrike", AwayTeam = "Danmark", CorrectResult = "1" },
+            new Match { Id = 25, HomeTeam = "Japan", AwayTeam = "Costa Rica", CorrectResult = "1" },
+            new Match { Id = 26, HomeTeam = "Spanien", AwayTeam = "Tyskland", CorrectResult = "1" },
+            new Match { Id = 27, HomeTeam = "Belgien", AwayTeam = "Marocko", CorrectResult = "1" },
+            new Match { Id = 28, HomeTeam = "Kroatien", AwayTeam = "Kanada", CorrectResult = "1" },
+            new Match { Id = 29, HomeTeam = "Kamerun", AwayTeam = "Serbien", CorrectResult = "1" },
+            new Match { Id = 30, HomeTeam = "Brasilien", AwayTeam = "Schweiz", CorrectResult = "1" },
+            new Match { Id = 31, HomeTeam = "Sydkorea", AwayTeam = "Ghana", CorrectResult = "2" },
+            new Match { Id = 32, HomeTeam = "Portugal", AwayTeam = "Uruguay", CorrectResult = "1" },
+            new Match { Id = 33, HomeTeam = "Ecuador", AwayTeam = "Senegal", CorrectResult = "X" },
+            new Match { Id = 34, HomeTeam = "Holland", AwayTeam = "Qatar", CorrectResult = "1" },
+            new Match { Id = 35, HomeTeam = "Iran", AwayTeam = "USA", CorrectResult = "1" },
+            new Match { Id = 36, HomeTeam = "Wales", AwayTeam = "England", CorrectResult = "2" },
+            new Match { Id = 37, HomeTeam = "Polen", AwayTeam = "Argentina", CorrectResult = "X" },
+            new Match { Id = 38, HomeTeam = "Saudiarabien", AwayTeam = "Mexiko", CorrectResult = "1" },
+            new Match { Id = 39, HomeTeam = "Australien", AwayTeam = "Danmark", CorrectResult = "X" },
+            new Match { Id = 40, HomeTeam = "Tunisien", AwayTeam = "Frankrike", CorrectResult = "1" },
+            new Match { Id = 41, HomeTeam = "Costa Rica", AwayTeam = "Tyskland", CorrectResult = "1" },
+            new Match { Id = 42, HomeTeam = "Japan", AwayTeam = "Spanien", CorrectResult = "1" },
+            new Match { Id = 44, HomeTeam = "Kanada", AwayTeam = "Marocko", CorrectResult = "1" },
+            new Match { Id = 45, HomeTeam = "Kroatien", AwayTeam = "Belgien", CorrectResult = "2" },
+            new Match { Id = 46, HomeTeam = "Kamerun", AwayTeam = "Brasilien", CorrectResult = "1" },
+            new Match { Id = 47, HomeTeam = "Serbien", AwayTeam = "Schweiz", CorrectResult = "1" },
+            new Match { Id = 48, HomeTeam = "Ghana", AwayTeam = "Uruguay", CorrectResult = "1" },
+            new Match { Id = 49, HomeTeam = "Sydkorea", AwayTeam = "Portugal", CorrectResult = "1" },
+
+
+        };
+        _matchPredictions = new Dictionary<int, string>();
+    }
+    // Denna funktion tar emot ett match-ID och en matchresultatsträng och lagrar matchresultatet i en "dictionary" om match-ID:et redan finns,
+    // annars lägger den till match-ID:et och matchresultatet i "dictionary".
+    private void SetMatchResult(int matchId, string result)
+    {
+        if (_matchPredictions.ContainsKey(matchId))
+        {
+            _matchPredictions[matchId] = result;
+        }
+        else
+        {
+            _matchPredictions.Add(matchId, result);
+        }
+    }
+
+    private void SubmitForm()
+    {
+        // Boolean sätts till sant när knappen "Tippa" klickas
+        _showResults = true;
+
+
+    }
+
+    private void ViewCorrectResults()
+    {
+        // Boolean sätts till sant när knappen "Resultat" klickas
+        _showCorrectResults = true;
+    }
+
+    /*Den här funktionen returnerar den första matchen med match-ID som matchar det angivna match-ID:et från en lista med match-objekt,
+    vilka lagras i minnet. Detta görs med hjälp av LINQ-metoden "FirstOrDefault()",
+    som innebär att om en match hittas med match-ID som matchar det angivna match-ID:et,
+    kommer det match-objektet att returneras. Annars kommer funktionen att returnera null
+    */
+    private Match GetMatch(int matchId)
+    {
+        return _matches.FirstOrDefault(m => m.Id == matchId);
+    }
+}
+
+

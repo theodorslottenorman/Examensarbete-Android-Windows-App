@@ -1,0 +1,52 @@
+﻿@page "/login"
+
+@using MauiApp1.Models;
+@inject NavigationManager Navigation;
+@inject CustomAuthenticationStateProvider AuthStateProvider;
+
+<h6>Logga in</h6>
+
+<div class="alert alert-info">
+    Denna logga in funktion är endast i testsyfte. För att logga in:
+    <br />
+    Användarnamn: Test
+    Lösenord: Test
+</div>
+
+<EditForm Model="@loginModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="alert alert-danger" hidden="@loginModel.LoginFailureHidden">
+        Felaktigt användarnamn eller lösenord! Prova igen. 
+    </div>
+    <div class="form-group">
+        <label>Användarnamn</label>
+        <InputText id="email" @bind-Value="loginModel.Username" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Lösenord</label>
+        <InputText id="password" type="password" @bind-Value="loginModel.Password" class="form-control" />
+    </div>
+    <div class="form-group mt-1">
+        <button type="submit" class="btn btn-primary w-100">Logga in</button>
+    </div>
+</EditForm>
+
+@code {
+    private LoginViewModel loginModel = new();
+
+    private async Task HandleValidSubmit()
+    {
+        //Validera Login
+        var successful = loginModel.ValidateLogin(out string jwtToken);
+
+        
+        if (!successful)
+            return;
+
+        
+        await AuthStateProvider.Login(jwtToken);
+        Navigation.NavigateTo(""); //Root URL
+    }
+}
+
